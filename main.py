@@ -25,6 +25,15 @@ def listAllCars(cars):
     if not cars:
         print("You don't have any cars in your database")
 
+# Add new car to the list
+def addNewCar(cars):
+    brand = input("Please enter the brand of the vehicle: ")
+    model = input("Please enter the model of the vehicle: ")
+    km_done = input("Please enter the current mileage of the vehicle: ")
+    service_date = input("Please enter the last service date: ")
+    new = Vehicle(brand=brand, model=model, km_done=km_done, service_date=service_date)
+    cars.append(new)
+
 #Main program logic
 def main():
     print(color.BOLD + "Welcome!" + color.END)
@@ -55,6 +64,8 @@ def main():
         if selection.lower() == "a":
             listAllCars(cars)
             input("Press any key to choose another action...")
+        if selection.lower() == "b":
+            addNewCar(cars)
 main()
 
 
