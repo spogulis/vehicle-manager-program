@@ -1,3 +1,4 @@
+import os
 #Define vehicle class
 class Vehicle:
     def __init__(self, brand, model, km_done, service_date):
@@ -97,6 +98,9 @@ def main():
             editCar(cars)
         if selection.lower() == "d":
             deleteCar(cars)
+        if selection.lower() == "e":
+            print("Thank you for using this software, goodbye!")
+            break
 main()
 
 
