@@ -1,3 +1,6 @@
+# Import datetime library
+from datetime import datetime
+
 #Define vehicle class
 class Vehicle:
     def __init__(self, brand, model, km_done, service_date):
@@ -28,10 +31,68 @@ def listAllCars(cars):
 
 # Add new car to the list
 def addNewCar(cars):
-    brand = input("Please enter the brand of the vehicle: ")
-    model = input("Please enter the model of the vehicle: ")
-    km_done = input("Please enter the current mileage of the vehicle: ")
-    service_date = input("Please enter the last service date: ")
+    #Check if data entered into brand variable is text
+    while True:
+
+        try:
+            brand = input("Please enter the brand of the vehicle.")
+            if brand.isalpha():
+                break
+            elif not brand:
+                print("")
+                print("Sorry, the brand field cannot be empty.")
+                print("")
+            elif brand.isdigit() or brand.isalnum() or float(brand):
+                print("")
+                print("Sorry, brand names usually don't contain numbers or decimals.")
+                print("")
+        except ValueError:
+            print("")
+            print("Sorry, this is not a valid brand name... Please try again!")
+            print("")
+
+    #Check if data entered into model is not empty
+    while True:
+        try:
+            model = input("Please enter the model of the vehicle: ")
+            if not model:
+                print("Sorry, the model field cannot be empty.")
+            elif model.isdigit() or model.isalnum() or float(model):
+                break
+        except ValueError:
+            print("")
+            print("Sorry, this is not a valid model... Please try again!")
+            print("")
+
+    #Check if data entered into mileage variable is a digit
+    while True:
+        try:
+            km_done = input("Please enter the current mileage of the vehicle: ")
+            if not km_done:
+                print("Sorry, the mileage field cannot be empty.")
+            elif km_done.isdigit():
+                break
+            elif km_done.isalpha() or km_done.isalnum() or float(km_done):
+                print("Sorry, mileage cannot contain text, decimals or negative numbers")
+        except ValueError:
+            print("")
+            print("Sorry, this is not a valid mileage... Please try again!")
+            print("")
+
+    # Check if data entered into service_date variable is in correct form
+    while True:
+        try:
+            service_date = input("Please enter the last service date (dd-mm-yyyy: ")
+            if not service_date:
+                print("Sorry, the service date field cannot be empty.")
+            if datetime.strptime(service_date, "%d-%m-%Y"):
+                break
+        except ValueError:
+            print("")
+            print("Sorry, this is not a valid date... Please try again!")
+            print("")
+
+    #Add vehicle to cars list
     new = Vehicle(brand=brand, model=model, km_done=km_done, service_date=service_date)
     cars.append(new)
 
