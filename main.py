@@ -1,4 +1,3 @@
-import os
 #Define vehicle class
 class Vehicle:
     def __init__(self, brand, model, km_done, service_date):
@@ -72,7 +71,6 @@ def main():
     #Cars
     cars = []
 
-
     #Show options
     while True:
         print(" ")  # empty line
@@ -83,6 +81,7 @@ def main():
         print(color.BOLD + "d)" + color.END + "Delete a car's record")
         print(color.BOLD + "e)" + color.END + "Quit the program.")
         print(" ")  # empty line
+        print(color.BOLD + "---------------------------------------------------------------------------------" + color.END)
 
         #User chooses an action
         selection = input("Enter your selection" + color.BOLD + "(a, b, c, d, e)" + color.END +": ")
@@ -91,12 +90,18 @@ def main():
         if selection.lower() == "a":
             listAllCars(cars)
             print("") #print empty line
-            input("Press any key to choose another action...")
+            input("Press \"Enter\" to choose another action...")
         if selection.lower() == "b":
             addNewCar(cars)
-        if selection.lower() == "c":
+        if selection.lower() == "c" and len(cars) == 0:
+            print("Sorry, there are no cars in your list to edit.")
+            input("Please press Enter to choose another action!")
+        elif selection.lower() == "c":
             editCar(cars)
-        if selection.lower() == "d":
+        if selection.lower() == "d" and len(cars) == 0:
+            print("Sorry, there are no cars in your list to delete.")
+            input("Please press Enter to choose another action!")
+        elif selection.lower() == "d":
             deleteCar(cars)
         if selection.lower() == "e":
             print("Thank you for using this software, goodbye!")
