@@ -82,10 +82,10 @@ def addNewCar(cars):
     # Check if data entered into service_date variable is in correct form
     while True:
         try:
-            service_date = input("Please enter the last service date (dd-mm-yyyy: ")
+            service_date = input("Please enter the last service date (dd.mm.yyyy: ")
             if not service_date:
                 print("Sorry, the service date field cannot be empty.")
-            if datetime.strptime(service_date, "%d-%m-%Y"):
+            if datetime.strptime(service_date, "%d.%m.%Y"):
                 break
         except ValueError:
             print("")
@@ -101,11 +101,64 @@ def editCar(cars):
     print("Please select the ID of the vehicle that you want to edit from the list below.")
     for index_number, car in enumerate(cars): #Print a list of all vehicles in DB
         print(str(index_number) + " " + car.getCarNameModel())
-    selected_id = input("Please enter the ID of the vehicle for which you want to edit data: ")
-    selected_vehicle = cars[int(selected_id)] #convert selected ID to an integer for the editCar argument
 
-    new_mileage = input("Please enter the new mileage number for %s " % selected_vehicle.getCarNameModel())
-    selected_vehicle.km_done = new_mileage
+    while True:
+        try:
+            selected_id = input("Car ID: ")
+            selected_vehicle = cars[int(selected_id)] #convert selected ID to an integer for the editCar argument
+            break
+        except ValueError:
+            print("")
+            print("Sorry, selection can only be a digit from the list above. Please try again!")
+
+    #Ask if the user wants to edit mileage or last service date
+    print("What data would you like to edit for vehicle \"%s\" with the ID: %s" % (cars[int(selected_id)].getCarNameModel(), str(selected_id)))
+    print("1) Brand name")
+    print("2) Model name")
+    print("3) Mileage")
+    print("4) Last service date")
+    print("")
+
+    #User selection
+    while True:
+        try:
+            user_selection = input("Enter a number for the option you want from the list: ")
+            if not user_selection:
+                print("")
+                print("Sorry, input field cannot be empty")
+            elif user_selection == "1":
+                new_brand_name = input("Please enter the new brand name for vehicle with the ID: %s" % str(selected_id))
+                selected_vehicle.brand = new_brand_name
+                break
+            elif user_selection == "2":
+                new_model_name = input("Please enter the new model name for vehicle with the ID: %s" % str(selected_id))
+                selected_vehicle.model = new_model_name
+                break
+            elif user_selection == "3":
+                new_mileage = input("Please enter the new mileage number for %s " % str(selected_id))
+                selected_vehicle.km_done = new_mileage
+                break
+            elif user_selection == "4":
+                try:
+                    new_date = input("Please enter the newest service date (dd.mm.yyyy: ")
+                    datetime.strptime(new_date, "%d.%m.%Y")
+                    selected_vehicle.service_date = new_date
+                    break
+                except ValueError:
+                    print("")
+                    print("Sorry, this is not a valid date... Please try again!")
+                    print("")
+            else:
+                print("Sorry, try again")
+        except ValueError:
+            print("")
+            print("Sorry, this is not a valid selection... Please try again!")
+            print("")
+
+
+    #Change mileage number
+    # new_mileage = input("Please enter the new mileage number for %s " % car.getCarNameModel())
+    # selected_vehicle.km_done = new_mileage
 
     print("") # empty line
     print("New mileage updated!")
