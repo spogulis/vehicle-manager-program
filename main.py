@@ -10,30 +10,26 @@ class Vehicle:
         self.service_date = service_date
 
     # Get car brand and model
-    def getCarNameModel(self):
+    def get_car_name_model(self):
         return self.brand + " " + self.model
-#Text effects
-class color:
-
-    BOLD = '\033[1m'
-    END = '\033[0m'
 
 # List all cars
-def listAllCars(cars):
-    for index_number, car in enumerate(cars):
+def list_all_cars(cars):
+    index = 0
+    for car in cars:
         print(" ")
-        print("ID: " + color.BOLD + str(index_number) + color.END)
-        print("Brand and model: " + color.BOLD + str(car.getCarNameModel()) + color.END)
-        print("Mileage: " + color.BOLD + str(car.km_done) + color.END)
-        print("Last service date: " + color.BOLD + str(car.service_date) + color.END)
+        print("ID: %s" % str(index))
+        print("Brand and model: %s %s" % (car["brand"], car["model"]))
+        print("Mileage: %s" % car["km_done"])
+        print("Last service date: %s" % car["service_date"])
+        index += 1
     if not cars:
         print("You don't have any cars in your database")
 
 # Add new car to the list
-def addNewCar(cars):
+def add_new_car(cars):
     #Check if data entered into brand variable is text
     while True:
-
         try:
             brand = input("Please enter the brand of the vehicle.")
             if brand.isalpha():
@@ -93,15 +89,27 @@ def addNewCar(cars):
             print("")
 
     #Add vehicle to cars list
-    new = Vehicle(brand=brand, model=model, km_done=km_done, service_date=service_date)
-    cars.append(new)
+    # new = Vehicle(brand=brand, model=model, km_done=km_done, service_date=service_date)
+    new_car = {}
+    new_car["brand"] = brand
+    new_car["model"] = model
+    new_car["km_done"] = km_done
+    new_car["service_date"] = service_date
+
+    cars.append(new_car)
 
 # Edit a car's record
-def editCar(cars):
+def edit_car(cars):
     print("Please select the ID of the vehicle that you want to edit from the list below.")
-    for index_number, car in enumerate(cars): #Print a list of all vehicles in DB
-        print(str(index_number) + " " + car.getCarNameModel())
+    index = 0
+    for car in cars: #Print a list of all vehicles in DB
+        print("")
+        print("ID: %s" % str(index))
+        print("Brand and model: %s %s" % (car["brand"], car["model"]))
+        print("")
+        index += 1
 
+    #Check for selection input
     while True:
         try:
             selected_id = input("Car ID: ")
@@ -111,8 +119,8 @@ def editCar(cars):
             print("")
             print("Sorry, selection can only be a digit from the list above. Please try again!")
 
-    #Ask if the user wants to edit mileage or last service date
-    print("What data would you like to edit for vehicle \"%s\" with the ID: %s" % (cars[int(selected_id)].getCarNameModel(), str(selected_id)))
+    #Ask what data the user wants to edit
+    print("What data would you like to edit for vehicle \"%s %s\" with the ID: %s" % (selected_vehicle["brand"], selected_vehicle["model"], str(selected_id)))
     print("1) Brand name")
     print("2) Model name")
     print("3) Mileage")
@@ -128,21 +136,22 @@ def editCar(cars):
                 print("Sorry, input field cannot be empty")
             elif user_selection == "1":
                 new_brand_name = input("Please enter the new brand name for vehicle with the ID: %s" % str(selected_id))
-                selected_vehicle.brand = new_brand_name
+                selected_vehicle["brand"] = new_brand_name
+
                 break
             elif user_selection == "2":
                 new_model_name = input("Please enter the new model name for vehicle with the ID: %s" % str(selected_id))
-                selected_vehicle.model = new_model_name
+                selected_vehicle["model"] = new_model_name
                 break
             elif user_selection == "3":
-                new_mileage = input("Please enter the new mileage number for %s " % str(selected_id))
-                selected_vehicle.km_done = new_mileage
+                new_mileage = input("Please enter the new mileage number for record with the ID %s " % str(selected_id))
+                selected_vehicle["km_done"] = new_mileage
                 break
             elif user_selection == "4":
                 try:
                     new_date = input("Please enter the newest service date (dd.mm.yyyy: ")
                     datetime.strptime(new_date, "%d.%m.%Y")
-                    selected_vehicle.service_date = new_date
+                    selected_vehicle["service_date"] = new_date
                     break
                 except ValueError:
                     print("")
@@ -154,20 +163,13 @@ def editCar(cars):
             print("")
             print("Sorry, this is not a valid selection... Please try again!")
             print("")
-
-
-    #Change mileage number
-    # new_mileage = input("Please enter the new mileage number for %s " % car.getCarNameModel())
-    # selected_vehicle.km_done = new_mileage
-
     print("") # empty line
-    print("New mileage updated!")
 
 # Delete a car's record
-def deleteCar(cars):
+def delete_car(cars):
     print("Please select the ID of the vehicle that you want to remove from the list below")
     for index_number, car in enumerate(cars):
-        print(str(index_number) + " " + car.getCarNameModel()) #Print a list of all vehicles in DB
+        print(str(index_number) + " " + (car["brand"] + " " + car["model"])) #Print a list of all vehicles in DB
     selected_id = input("Delete vehicle with the ID: ")
     selected_vehicle = cars[int(selected_id)] #convert selected ID to an integer for the deleteCar argument
 
@@ -177,48 +179,84 @@ def deleteCar(cars):
     print("Vehicle with the ID: %s has been deleted from the system" % str(selected_id))
     print("")
 
+
+#Add data to file
+
+def write_to_file(filename, cars):
+    if len(cars) > 0:
+        file_handle = open(filename, "w+", encoding="utf-8")
+        for new_car in cars:
+            car_record_line = "%s--%s--%s--%s\n" % (new_car["brand"], new_car["model"], new_car["km_done"], new_car["service_date"])
+            file_handle.write(car_record_line)
+        file_handle.close()
+    return True
+
+#Read from file
+def read_from_file(cars):
+    try:
+        cars = []
+        file_handle = open(filename, "r", encoding="utf-8") #Open file for reading with write permission
+        lines = file_handle.read().splitlines() #Read file and split into lines
+        for line in lines:
+            car_data = line.split("--")
+            car = {}
+            car["brand"] = car_data[0]
+            car["model"] = car_data[1]
+            car["km_done"] = car_data[2]
+            car["service_date"] = car_data[3]
+            cars.append(car)
+        file_handle.close()
+        return cars
+    except IOError:
+        return []
+
+#Filename variable
+filename = "list.txt"
+
+#Cars list
+cars = read_from_file(filename)
+
 #Main program logic
 def main():
-    print(color.BOLD + "Welcome!" + color.END)
-    print(color.BOLD + "---------------------------------------------------------------------------------" + color.END)
-
-    #Cars
-    cars = []
+    print("Welcome!")
+    print("---------------------------------------------------------------------------------")
 
     #Show options
     while True:
         print(" ")  # empty line
-        print(color.BOLD + "Please choose one of these options: " + color.END)
-        print(color.BOLD + "a)" + color.END + "View all your cars")
-        print(color.BOLD + "b)" + color.END + "Add a new car record")
-        print(color.BOLD + "c)" + color.END + "Edit a car's record")
-        print(color.BOLD + "d)" + color.END + "Delete a car's record")
-        print(color.BOLD + "e)" + color.END + "Quit the program.")
+        print("Please choose one of these options: ")
+        print("a) View all your cars")
+        print("b) Add a new car record")
+        print("c) Edit a car's record")
+        print("d) Delete a car's record")
+        print("e) Quit the program.")
         print(" ")  # empty line
-        print(color.BOLD + "---------------------------------------------------------------------------------" + color.END)
+        print("---------------------------------------------------------------------------------")
 
         #User chooses an action
-        selection = input("Enter your selection" + color.BOLD + "(a, b, c, d, e)" + color.END +": ")
+        selection = input("Enter your selection(a, b, c, d, e): ")
         print(" ") # empty line
 
         if selection.lower() == "a":
-            listAllCars(cars)
+            list_all_cars(cars)
             print("") #print empty line
             input("Press \"Enter\" to choose another action...")
         if selection.lower() == "b":
-            addNewCar(cars)
+            add_new_car(cars)
+            write_to_file(filename, cars)
         if selection.lower() == "c" and len(cars) == 0:
             print("Sorry, there are no cars in your list to edit.")
             input("Please press Enter to choose another action!")
         elif selection.lower() == "c":
-            editCar(cars)
+            edit_car(cars)
         if selection.lower() == "d" and len(cars) == 0:
             print("Sorry, there are no cars in your list to delete.")
             input("Please press Enter to choose another action!")
         elif selection.lower() == "d":
-            deleteCar(cars)
+            delete_car(cars)
         if selection.lower() == "e":
             print("Thank you for using this software, goodbye!")
+            write_to_file(filename, cars)
             break
 main()
 
