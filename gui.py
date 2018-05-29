@@ -2,11 +2,15 @@ import sys
 from PyQt5.QtWidgets import (QWidget, QGridLayout,
     QPushButton, QApplication, QLabel)
 
-class Application(QWidget):
+class MainWindow(QApplication):
     def __init__(self):
         super().__init__()
-        self.initUI() #Initialize user interface into the main application
 
+
+
+class MainMenu(QWidget):
+    def __init__(self):
+        super(MainMenu, self).__init__()
     def initUI(self):
         #GRID layout
         grid = QGridLayout()
@@ -43,10 +47,11 @@ class Application(QWidget):
         self.setWindowTitle('Main menu - Vehicle manager')
         self.show()
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = Application()
-    sys.exit(app.exec_())
+
+app = MainWindow()
+main_menu = MainMenu()
+
+sys.exit(app.exec_())
 
 
 
