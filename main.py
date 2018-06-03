@@ -233,6 +233,6 @@ def main():
             print("Thank you for using this software, goodbye!")
             write_to_file(filename, cars)
             break
-main()
+# main()
 
 

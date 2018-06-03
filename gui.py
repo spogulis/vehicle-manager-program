@@ -2,14 +2,13 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-
+from main import *
 
 class MainWindow(QWidget):
     def __init__(self):
         super(QWidget, self).__init__()
 
         self.setGeometry(300, 300, 350, 300)
-        self.second = SecondWindow()
         #GRID layout
         grid = QGridLayout()
         self.setLayout(grid)
@@ -53,21 +52,31 @@ class MainWindow(QWidget):
 
     def button_clicked(self):
         self.sw = SecondWindow()
-        self.sw.show()
-
+        # self.sw.show()
 
 class SecondWindow(QWidget):
     def __init__(self):
         super(QWidget, self).__init__()
 
-        self.setGeometry(300, 300, 350, 300)
-        #GRID layout
-        grid = QGridLayout()
-        self.setLayout(grid)
-        grid.setSpacing(20)
-        list_all_cars_q = QLabel('Press this button to view all your cars')
-        grid.addWidget(list_all_cars_q, 1, 0)
-        self.show()
+        self.scrollArea = QScrollArea()  # Def scrollarea
+        self.scrollArea.setGeometry(700, 300, 350, 300) # Dimensions
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollArea.setMinimumHeight(280)
+        self.scrollArea.setMaximumHeight(300)
+        self.scrollArea.setWindowTitle('List of cars in file')
+
+        self.widget = QWidget(self.scrollArea)
+
+        #Print a list of cars
+        filename = "list.txt"
+        cars = read_from_file(filename)
+        layout = QGridLayout(self.widget)
+        for index, car in enumerate(cars):
+            # empty_line = QLabel('')
+            # grid.addWidget(empty_line, index, 1)
+            id_line = QLabel('ID: {}'.format(str(index)))
+            layout.addWidget(id_line, index, 1)
+        self.scrollArea.show()
 
 
 app = QApplication(sys.argv)
