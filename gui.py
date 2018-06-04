@@ -45,54 +45,95 @@ class MainWindow(QWidget):
         #Quit
         quit_btn.clicked.connect(QApplication.instance().quit)
 
-        #Window2
-        list_all_cars_btn.clicked.connect(self.button_clicked)
+        #List all cars (new window)
+        list_all_cars_btn.clicked.connect(self.list_cars_clicked)
 
+        #Add car dialog
+        add_car_btn.clicked.connect(self.add_car_clicked)
         self.setGeometry(300, 300, 350, 300)
         self.setWindowTitle('Main menu - Vehicle manager')
         self.show()
 
-    def button_clicked(self):
-        self.sw = SecondWindow()
+    def list_cars_clicked(self):
+        self.sw = ViewCars()
+        self.sw.setGeometry(700, 300, 270, 300)
+        self.sw.setWindowTitle('List of cars in file')
+        self.sw.show()
+    def add_car_clicked(self):
+        self.tw = AddCar()
+        self.tw.show()
 
-
-class SecondWindow(QWidget):
+class ViewCars(QWidget):
     def __init__(self):
         super(QWidget, self).__init__()
 
-        #Scroll area
-        self.scrollArea = QScrollArea()  # Def scrollarea
-        self.scrollArea.setGeometry(700, 300, 350, 300) # Dimensions
-        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setWindowTitle('List of cars in file')
-        #Scrolling widget
-        self.widget = QWidget(self.scrollArea)
+        # Scrolling widget
+        widget = QWidget()
 
         # Layout of container widget
-        layout = QGridLayout(self.widget)
+        layout = QGridLayout(self)
+
+        # Set layout to widget
+        widget.setLayout(layout)
 
         #Define filename and car list
         filename = "list.txt"
         cars = read_from_file(filename)
 
-
         # Generate car lines in window
-        def gen_car_lines(self):
-            for index, car in enumerate(cars):
-                id_line = QLabel('ID: {}'.format(str(index)))
-                model_brand_line = QLabel('{} {}'.format(car.brand, car.model))
-                mileage_line = QLabel('Mileage: {}'.format(car.km_done))
-                service_date_line = QLabel('Last service date: {}\n'.format(car.service_date))
-                layout.addWidget(id_line)
-                layout.addWidget(model_brand_line)
-                layout.addWidget(mileage_line)
-                layout.addWidget(service_date_line)
+
+        for index, car in enumerate(cars):
+            id_line = QLabel('ID: {}'.format(str(index)))
+            model_brand_line = QLabel('{} {}'.format(car.brand, car.model))
+            mileage_line = QLabel('Mileage: {}'.format(car.km_done))
+            service_date_line = QLabel('Last service date: {}\n'.format(car.service_date))
+            layout.addWidget(id_line)
+            layout.addWidget(model_brand_line)
+            layout.addWidget(mileage_line)
+            layout.addWidget(service_date_line)
+
+        # Scroll area
+        self.scrollArea = QScrollArea()  # Def scrollarea
+        # self.scrollArea.setGeometry(700, 400, 200, 300)  # Dimensions
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollArea.setWidgetResizable(False)
 
         #Assign widget to scrollarea
-        self.scrollArea.setWidget(gen_car_lines(self))
-        self.scrollArea.show()
+        self.scrollArea.setWidget(widget)
 
+        v_layout = QGridLayout(self)
+        v_layout.addWidget(self.scrollArea)
+        self.setLayout(v_layout)
+
+
+class AddCar(QWidget):
+
+    def __init__(self):
+        super(AddCar, self).__init__()
+        self.setFixedHeight(200)
+
+        # Container Widget
+        widget = QWidget()
+        # Layout of Container Widget
+        layout = QVBoxLayout(self)
+        
+        # for _ in range(20):
+        #     btn = QPushButton('test')
+        #     layout.addWidget(btn)
+
+        widget.setLayout(layout)
+
+        # Scroll Area Properties
+        scroll = QScrollArea()
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setWidgetResizable(False)
+        scroll.setWidget(widget)
+
+        # Scroll Area Layer add
+        vLayout = QVBoxLayout(self)
+        vLayout.addWidget(scroll)
+        self.setLayout(vLayout)
 
 app = QApplication(sys.argv)
 mw = MainWindow()
