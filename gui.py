@@ -3,6 +3,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from main import *
+from Vehicle import Vehicle
+
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -52,30 +54,43 @@ class MainWindow(QWidget):
 
     def button_clicked(self):
         self.sw = SecondWindow()
-        # self.sw.show()
+
 
 class SecondWindow(QWidget):
     def __init__(self):
         super(QWidget, self).__init__()
 
+        #Scroll area
         self.scrollArea = QScrollArea()  # Def scrollarea
         self.scrollArea.setGeometry(700, 300, 350, 300) # Dimensions
         self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.scrollArea.setMinimumHeight(280)
-        self.scrollArea.setMaximumHeight(300)
+        self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setWindowTitle('List of cars in file')
-
+        #Scrolling widget
         self.widget = QWidget(self.scrollArea)
 
-        #Print a list of cars
+        # Layout of container widget
+        layout = QGridLayout(self.widget)
+
+        #Define filename and car list
         filename = "list.txt"
         cars = read_from_file(filename)
-        layout = QGridLayout(self.widget)
-        for index, car in enumerate(cars):
-            # empty_line = QLabel('')
-            # grid.addWidget(empty_line, index, 1)
-            id_line = QLabel('ID: {}'.format(str(index)))
-            layout.addWidget(id_line, index, 1)
+
+
+        # Generate car lines in window
+        def gen_car_lines(self):
+            for index, car in enumerate(cars):
+                id_line = QLabel('ID: {}'.format(str(index)))
+                model_brand_line = QLabel('{} {}'.format(car.brand, car.model))
+                mileage_line = QLabel('Mileage: {}'.format(car.km_done))
+                service_date_line = QLabel('Last service date: {}\n'.format(car.service_date))
+                layout.addWidget(id_line)
+                layout.addWidget(model_brand_line)
+                layout.addWidget(mileage_line)
+                layout.addWidget(service_date_line)
+
+        #Assign widget to scrollarea
+        self.scrollArea.setWidget(gen_car_lines(self))
         self.scrollArea.show()
 
 
