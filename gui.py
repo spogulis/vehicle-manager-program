@@ -2,15 +2,20 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5 import QtCore
 from main import *
 from Vehicle import Vehicle
 
 
 class MainWindow(QWidget):
+
+    switch_window = QtCore.pyqtSignal()
+
     def __init__(self):
         super(QWidget, self).__init__()
 
         self.setGeometry(300, 300, 350, 300)
+        self.setWindowTitle('Vehicle manager')
         #GRID layout
         grid = QGridLayout()
         self.setLayout(grid)
@@ -46,30 +51,39 @@ class MainWindow(QWidget):
         quit_btn.clicked.connect(QApplication.instance().quit)
 
         #List all cars (new window)
-        list_all_cars_btn.clicked.connect(self.list_cars_clicked)
+        list_all_cars_btn.clicked.connect(self.switch)
 
-        #Add car dialog
-        add_car_btn.clicked.connect(self.add_car_clicked)
-        self.setGeometry(300, 300, 350, 300)
-        self.setWindowTitle('Main menu - Vehicle manager')
-        self.show()
+        # #Add car dialog
+        # add_car_btn.clicked.connect(self.add_car_clicked)
+        # self.setGeometry(300, 300, 350, 300)
+        # self.setWindowTitle('Main menu - Vehicle manager')
+        # self.show()
 
-    def list_cars_clicked(self):
-        self.sw = ViewCars()
-        self.sw.setGeometry(700, 300, 270, 300)
-        self.sw.setWindowTitle('List of cars in file')
-        self.sw.show()
+    # def list_cars_clicked(self):
+    #     self.sw = ViewCars()
+    #     self.sw.setGeometry(700, 300, 270, 300)
+    #     self.sw.setWindowTitle('List of cars in file')
+    #     self.sw.show()
     def add_car_clicked(self):
         self.tw = AddCar()
         self.tw.show()
 
+    def switch(self):
+        self.switch_window.emit()
+
+
 class ViewCars(QWidget):
+
+    switch_window = QtCore.pyqtSignal()
+
     def __init__(self):
         super(QWidget, self).__init__()
 
+        self.setWindowTitle("List of cars in file - Vehicle manager")
+        self.setGeometry(300, 300, 400, 300)
+
         # Scrolling widget
         widget = QWidget()
-
         # Layout of container widget
         layout = QGridLayout(self)
 
@@ -103,7 +117,15 @@ class ViewCars(QWidget):
 
         v_layout = QGridLayout(self)
         v_layout.addWidget(self.scrollArea)
+
+        back_btn = QPushButton("Back")
+        back_btn.clicked.connect(self.switch)
+
+        v_layout.addWidget(back_btn)
         self.setLayout(v_layout)
+
+    def switch(self):
+        self.switch_window.emit()
 
 
 class AddCar(QWidget):
@@ -116,7 +138,7 @@ class AddCar(QWidget):
         widget = QWidget()
         # Layout of Container Widget
         layout = QVBoxLayout(self)
-        
+
         # for _ in range(20):
         #     btn = QPushButton('test')
         #     layout.addWidget(btn)
@@ -135,8 +157,26 @@ class AddCar(QWidget):
         vLayout.addWidget(scroll)
         self.setLayout(vLayout)
 
+class Controller:
+    def __init__(self):
+        pass
+    def show_main(self):
+        self.window = MainWindow()
+        self.window_car_list = ViewCars()
+        self.window.switch_window.connect(self.show_car_list)
+        self.window_car_list.close()
+        self.window.show()
+    def show_car_list(self):
+        self.window_car_list = ViewCars()
+        self.window.close()
+        self.window_car_list.switch_window.connect(self.show_main)
+        self.window_car_list.show()
+
+
+
 app = QApplication(sys.argv)
-mw = MainWindow()
+controller = Controller()
+controller.show_main()
 sys.exit(app.exec_())
 
 
