@@ -33,3 +33,12 @@ class Vehicle:
             self.brand, self.model, self.km_done, self.service_date)
         return car_record_line
 
+    #Write to file
+    def write_to_file(self, filename, cars):
+        if len(cars) > 0:
+            with open(filename, "w+", encoding="utf-8") as file_handle:
+                for car in cars:
+                    line = car.generate_file_line()
+                    file_handle.write(line)
+        return True
+

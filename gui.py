@@ -4,13 +4,14 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import QtCore
 from main import *
-from Vehicle import Vehicle
+from vehicle import Vehicle
 
 
 class MainWindow(QWidget):
 
     switch_window = QtCore.pyqtSignal()
     add_car_signal = QtCore.pyqtSignal()
+    delete_car_toggled = False
 
     def __init__(self):
         super(QWidget, self).__init__()
@@ -64,17 +65,18 @@ class MainWindow(QWidget):
             self.submit_btn = QPushButton("Submit")
             self.submit_btn.setHidden(True)
 
-            self.add_layout.addWidget(self.brand_label, 1, 0)
-            self.add_layout.addWidget(self.brand_input, 1, 1)
-            self.add_layout.addWidget(self.model_label, 2, 0)
-            self.add_layout.addWidget(self.model_input, 2, 1)
-            self.add_layout.addWidget(self.mileage_label, 3, 0)
-            self.add_layout.addWidget(self.mileage_input, 3, 1)
-            self.add_layout.addWidget(self.date_label, 4, 0)
-            self.add_layout.addWidget(self.date_input, 4, 1)
-            self.add_layout.addWidget(self.submit_btn, 5, 1)
+            self.sublayout.addWidget(self.brand_label, 1, 0)
+            self.sublayout.addWidget(self.brand_input, 1, 1)
+            self.sublayout.addWidget(self.model_label, 2, 0)
+            self.sublayout.addWidget(self.model_input, 2, 1)
+            self.sublayout.addWidget(self.mileage_label, 3, 0)
+            self.sublayout.addWidget(self.mileage_input, 3, 1)
+            self.sublayout.addWidget(self.date_label, 4, 0)
+            self.sublayout.addWidget(self.date_input, 4, 1)
+            self.sublayout.addWidget(self.submit_btn, 5, 1)
 
             self.submit_btn.clicked.connect(add_car_submit)
+
         def show_add_car_dialog():
             if self.add_car_toggled == False:
                 self.brand_label.setHidden(False)
@@ -100,6 +102,29 @@ class MainWindow(QWidget):
                 self.setFixedHeight(290)
             self.add_car_toggled = not self.add_car_toggled
 
+        def delete_car_dialog(self):
+            self.delete_car_label = QLabel("Please enter the ID of the car you'd like to delete")
+            self.delete_car_input = QLineEdit()
+            self.delete_btn = QPushButton("Delete {}".format(self.delete_car_input.text()))
+            self.delete_car_input.setFixedWidth(40)
+            self.delete_car_label.setHidden(True)
+            self.delete_car_input.setHidden(True)
+            self.delete_btn.setHidden(True)
+
+            self.sublayout.addWidget(self.delete_car_label, 6, 0)
+            self.sublayout.addWidget(self.delete_car_input, 6, 1)
+            self.sublayout.addWidget(self.delete_btn, 6, 3)
+
+        def show_delete_car_dialog():
+            if not MainWindow.delete_car_toggled:
+                self.delete_car_label.setHidden(False)
+                self.delete_car_input.setHidden(False)
+                self.delete_btn.setHidden(False)
+            if MainWindow.delete_car_toggled:
+                self.delete_car_label.setHidden(True)
+                self.delete_car_input.setHidden(True)
+                self.delete_btn.setHidden(True)
+            MainWindow.delete_car_toggled = not MainWindow.delete_car_toggled
 
 
         # Global car list
@@ -118,8 +143,6 @@ class MainWindow(QWidget):
 
         #GRID layout
         self.main_grid = QGridLayout()
-        self.main_CL.addLayout(self.main_grid)
-        # self.setLayout(self.main_grid)
         self.main_CL.addLayout(self.main_grid) # add grid layout to main_CL
         self.main_grid.setSpacing(20)
 
@@ -151,13 +174,15 @@ class MainWindow(QWidget):
         self.main_grid.addWidget(self.delete_car_btn, 3, 2, 1, 1)
         self.main_grid.addWidget(self.quit_btn, 4, 2, 1, 1)
 
-        # Sublayout (add car)
-        self.add_layout = QGridLayout()
-        self.main_CL.addLayout(self.add_layout)
+        # Sublayout (add car & delete car)
+        self.sublayout = QGridLayout()
+        self.main_CL.addLayout(self.sublayout)
+
+
 
         # Insert car dialog below main window
         add_car_dialog(self)
-
+        delete_car_dialog(self)
         #BUTTON ACTIONS
 
         #Quit
@@ -169,7 +194,8 @@ class MainWindow(QWidget):
         #Show add car dialog
         self.add_car_btn.clicked.connect(show_add_car_dialog)
 
-        #Add new car when clicking submit
+        #Show delete car dialog
+        self.delete_car_btn.clicked.connect(show_delete_car_dialog)
 
 
     def switch(self):
@@ -179,12 +205,13 @@ class MainWindow(QWidget):
 class ViewCars(QWidget):
 
     switch_window = QtCore.pyqtSignal()
+    back_btn_status = True
 
     def __init__(self):
         super(QWidget, self).__init__()
 
         self.setWindowTitle("List of cars in file - Vehicle manager")
-        self.setGeometry(1000, 30, 450, 800)
+        self.setGeometry(1360, 30, 450, 800)
 
         # Scrolling widget
         widget = QWidget()
@@ -226,34 +253,35 @@ class ViewCars(QWidget):
         back_btn.clicked.connect(self.switch)
 
         v_layout.addWidget(back_btn)
+        if not ViewCars.back_btn_status:
+            back_btn.setHidden(True)
         self.setLayout(v_layout)
 
     def switch(self):
         self.switch_window.emit()
 
 
-class AddCar(QWidget):
+# class AddCar(QWidget):
+#
+#     def __init__(self):
+#         super(AddCar, self).__init__()
+#         self.setFixedHeight(100)
+#
+#         # # Container Widget
+#         # widget = QWidget()
+#         # # Layout of Container Widget
+#         # layout = QVBoxLayout(self)
+#         #
+#         # # for _ in range(20):
+#         # #     btn = QPushButton('test')
+#         # #     layout.addWidget(btn)
+#         #
+#         # widget.setLayout(layout)
+#         #
+#         # self.setLayout(layout)
 
-    def __init__(self):
-        super(AddCar, self).__init__()
-        self.setFixedHeight(100)
-
-        # # Container Widget
-        # widget = QWidget()
-        # # Layout of Container Widget
-        # layout = QVBoxLayout(self)
-        #
-        # # for _ in range(20):
-        # #     btn = QPushButton('test')
-        # #     layout.addWidget(btn)
-        #
-        # widget.setLayout(layout)
-        #
-        # self.setLayout(layout)
 
 class Controller:
-    def __init__(self):
-        pass
     def show_main(self):
         self.window = MainWindow()
         self.window_car_list = ViewCars()
@@ -261,8 +289,12 @@ class Controller:
         self.window_car_list.close()
         self.window.show()
     def show_car_list(self):
+        if not MainWindow.delete_car_toggled:
+            self.window.close()
+            ViewCars.back_btn_status = True
+        if MainWindow.delete_car_toggled:
+            ViewCars.back_btn_status = False
         self.window_car_list = ViewCars()
-        self.window.close()
         self.window_car_list.switch_window.connect(self.show_main)
         self.window_car_list.show()
 
