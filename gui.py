@@ -3,20 +3,48 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import QtCore
-from main import *
+# from main import *
 from vehicle import Vehicle
 
 
-class MainWindow(QWidget):
+def read_from_file(filename):
+    try:
+        MainWindow.cars = []
+        with open(filename, "r", encoding="utf-8") as file_handle:
+            lines = file_handle.read().splitlines()
+            for line in lines:
+                car = Vehicle()  # init empty car object
+                car.read_from_file_line(line)  # populate empty object with line data
+                MainWindow.cars.append(car)
+            return MainWindow.cars
+    except IOError:
+        return []
 
+def write_to_file(filename):
+    cars = MainWindow.cars
+    if len(cars) > 0:
+        with open(filename, "w+", encoding="utf-8") as file_handle:
+            for car in cars:
+                line = car.generate_file_line()
+                file_handle.write(line)
+    return True
+
+
+class MainWindow(QWidget):
+    filename = "list.txt"
     switch_window = QtCore.pyqtSignal()
     add_car_signal = QtCore.pyqtSignal()
     delete_car_toggled = False
+    add_car_toggled = False
+    cars = []
+    del_id = None
 
     def __init__(self):
         super(QWidget, self).__init__()
         self.setWindowTitle('Vehicle manager')
+
         def add_car_dialog(self):
+
             def add_car_submit():
                 filename = "list.txt"
                 cars = read_from_file(filename)
@@ -40,25 +68,21 @@ class MainWindow(QWidget):
 
             self.brand_label = QLabel("Enter brand name: ")
             self.brand_input = QLineEdit()
-            self.brand_input.setFixedWidth(400)
             self.brand_label.setHidden(True)
             self.brand_input.setHidden(True)
 
             self.model_label = QLabel("Enter model name: ")
             self.model_input = QLineEdit()
-            self.model_input.setFixedWidth(400)
             self.model_label.setHidden(True)
             self.model_input.setHidden(True)
 
             self.mileage_label = QLabel("Enter current mileage: ")
             self.mileage_input = QLineEdit()
-            self.mileage_input.setFixedWidth(400)
             self.mileage_label.setHidden(True)
             self.mileage_input.setHidden(True)
 
             self.date_label = QLabel("Enter last service date: ")
             self.date_input = QLineEdit()
-            self.date_input.setFixedWidth(400)
             self.date_label.setHidden(True)
             self.date_input.setHidden(True)
 
@@ -66,19 +90,20 @@ class MainWindow(QWidget):
             self.submit_btn.setHidden(True)
 
             self.sublayout.addWidget(self.brand_label, 1, 0)
-            self.sublayout.addWidget(self.brand_input, 1, 1)
+            self.sublayout.addWidget(self.brand_input, 1, 1, 1, 5)
             self.sublayout.addWidget(self.model_label, 2, 0)
-            self.sublayout.addWidget(self.model_input, 2, 1)
+            self.sublayout.addWidget(self.model_input, 2, 1, 1, 5)
             self.sublayout.addWidget(self.mileage_label, 3, 0)
-            self.sublayout.addWidget(self.mileage_input, 3, 1)
+            self.sublayout.addWidget(self.mileage_input, 3, 1, 1, 5)
             self.sublayout.addWidget(self.date_label, 4, 0)
-            self.sublayout.addWidget(self.date_input, 4, 1)
-            self.sublayout.addWidget(self.submit_btn, 5, 1)
+            self.sublayout.addWidget(self.date_input, 4, 1, 1, 5)
+            self.sublayout.addWidget(self.submit_btn, 5, 1, 1, 5)
+
 
             self.submit_btn.clicked.connect(add_car_submit)
 
         def show_add_car_dialog():
-            if self.add_car_toggled == False:
+            if not MainWindow.add_car_toggled:
                 self.brand_label.setHidden(False)
                 self.brand_input.setHidden(False)
                 self.model_label.setHidden(False)
@@ -88,8 +113,9 @@ class MainWindow(QWidget):
                 self.date_label.setHidden(False)
                 self.date_input.setHidden(False)
                 self.submit_btn.setHidden(False)
-                self.setFixedHeight(517)
-            elif self.add_car_toggled == True:
+                self.setFixedHeight(550)
+                MainWindow.add_car_toggled = not MainWindow.add_car_toggled
+            elif MainWindow.add_car_toggled:
                 self.brand_label.setHidden(True)
                 self.brand_input.setHidden(True)
                 self.model_label.setHidden(True)
@@ -100,35 +126,54 @@ class MainWindow(QWidget):
                 self.date_input.setHidden(True)
                 self.submit_btn.setHidden(True)
                 self.setFixedHeight(290)
-            self.add_car_toggled = not self.add_car_toggled
+                MainWindow.add_car_toggled = not MainWindow.add_car_toggled
 
         def delete_car_dialog(self):
             self.delete_car_label = QLabel("Please enter the ID of the car you'd like to delete")
             self.delete_car_input = QLineEdit()
-            self.delete_btn = QPushButton("Delete {}".format(self.delete_car_input.text()))
-            self.delete_car_input.setFixedWidth(40)
+            self.onlyInt = QIntValidator(1, len(MainWindow.cars))
+            self.delete_car_input.setValidator(self.onlyInt)
+            self.delete_car_input.textChanged[str].connect(lambda: self.delete_btn.setEnabled(self.delete_car_input.text() != ""))
+            self.delete_btn = QPushButton("Delete", enabled=False)
             self.delete_car_label.setHidden(True)
             self.delete_car_input.setHidden(True)
             self.delete_btn.setHidden(True)
 
-            self.sublayout.addWidget(self.delete_car_label, 6, 0)
-            self.sublayout.addWidget(self.delete_car_input, 6, 1)
-            self.sublayout.addWidget(self.delete_btn, 6, 3)
+            self.sublayout.addWidget(self.delete_car_label, 6, 0, 1, 3)
+            self.sublayout.addWidget(self.delete_car_input, 6, 4, 1, 1)
+            self.sublayout.addWidget(self.delete_btn, 6, 5)
 
         def show_delete_car_dialog():
+
+            def delete_selected():
+                filename = "list.txt"
+                read_from_file(filename)
+                del_id = self.delete_car_input.text()
+                del_id = int(del_id) - 1
+                MainWindow.cars.remove(MainWindow.cars[del_id])
+                write_to_file(filename)
+
             if not MainWindow.delete_car_toggled:
                 self.delete_car_label.setHidden(False)
                 self.delete_car_input.setHidden(False)
                 self.delete_btn.setHidden(False)
+                if MainWindow.add_car_toggled:
+                    self.setFixedHeight(570)
+                else:
+                    self.setFixedHeight(350)
             if MainWindow.delete_car_toggled:
                 self.delete_car_label.setHidden(True)
                 self.delete_car_input.setHidden(True)
                 self.delete_btn.setHidden(True)
+                if not MainWindow.add_car_toggled:
+                    self.setFixedHeight(300)
+
             MainWindow.delete_car_toggled = not MainWindow.delete_car_toggled
+            # Del toggled
+            self.delete_btn.clicked.connect(delete_selected)
 
+        read_from_file(MainWindow.filename)
 
-        # Global car list
-        self.cars = []
         # Container frame
         self.main_CW = QWidget()
 
@@ -147,7 +192,7 @@ class MainWindow(QWidget):
         self.main_grid.setSpacing(20)
 
         #Is add_car toggled?
-        self.add_car_toggled = False
+        # self.add_car_toggled = False
 
         #Buttons
         self.list_all_cars_btn = QPushButton("List cars")
@@ -178,11 +223,11 @@ class MainWindow(QWidget):
         self.sublayout = QGridLayout()
         self.main_CL.addLayout(self.sublayout)
 
-
-
         # Insert car dialog below main window
         add_car_dialog(self)
         delete_car_dialog(self)
+
+
         #BUTTON ACTIONS
 
         #Quit
@@ -228,7 +273,7 @@ class ViewCars(QWidget):
         # Generate car lines in window
 
         for index, car in enumerate(cars):
-            id_line = QLabel('ID: {}'.format(str(index)))
+            id_line = QLabel('ID: {}'.format(str(index + 1)))
             model_brand_line = QLabel('{} {}'.format(car.brand, car.model))
             mileage_line = QLabel('Mileage: {}'.format(car.km_done))
             service_date_line = QLabel('Last service date: {}\n'.format(car.service_date))
@@ -259,6 +304,7 @@ class ViewCars(QWidget):
 
     def switch(self):
         self.switch_window.emit()
+
 
 
 # class AddCar(QWidget):
@@ -297,6 +343,7 @@ class Controller:
         self.window_car_list = ViewCars()
         self.window_car_list.switch_window.connect(self.show_main)
         self.window_car_list.show()
+
 
 
 def main():
