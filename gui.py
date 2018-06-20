@@ -3,9 +3,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import QtCore
-# from main import *
 from vehicle import Vehicle
-
+from datetime import datetime
 
 def read_from_file(filename):
     try:
@@ -34,6 +33,7 @@ class MainWindow(QWidget):
     filename = "list.txt"
     switch_window = QtCore.pyqtSignal()
     add_car_signal = QtCore.pyqtSignal()
+    edit_car_toggled = False
     delete_car_toggled = False
     add_car_toggled = False
     cars = []
@@ -66,28 +66,49 @@ class MainWindow(QWidget):
                 self.mileage_input.setText("")
                 self.date_input.setText("")
 
+            def check_fields():
+                brand_f = self.brand_input.text()
+                model_f = self.model_input.text()
+                mileage_f = self.mileage_input.text()
+                date_f = self.date_input.text()
+
+                if brand_f == "" or model_f == "" or mileage_f == "" or date_f == "":
+                    self.submit_btn.setEnabled(False)
+                else:
+                    try:
+                        datetime.strptime(date_f, "%d.%m.%Y")
+                        self.submit_btn.setEnabled(True)
+                    except ValueError:
+                        self.edit_date_label.setToolTip("A valid date is dd.mm.yyyy")
+                        self.submit_btn.setEnabled(False)
+
             self.brand_label = QLabel("Enter brand name: ")
             self.brand_input = QLineEdit()
             self.brand_label.setHidden(True)
             self.brand_input.setHidden(True)
+            self.brand_input.textChanged[str].connect(check_fields)
 
             self.model_label = QLabel("Enter model name: ")
             self.model_input = QLineEdit()
             self.model_label.setHidden(True)
             self.model_input.setHidden(True)
+            self.model_input.textChanged[str].connect(check_fields)
 
             self.mileage_label = QLabel("Enter current mileage: ")
             self.mileage_input = QLineEdit()
             self.mileage_label.setHidden(True)
             self.mileage_input.setHidden(True)
+            self.mileage_input.textChanged[str].connect(check_fields)
 
             self.date_label = QLabel("Enter last service date: ")
             self.date_input = QLineEdit()
             self.date_label.setHidden(True)
             self.date_input.setHidden(True)
+            self.date_input.textChanged[str].connect(check_fields)
 
             self.submit_btn = QPushButton("Submit")
             self.submit_btn.setHidden(True)
+            self.submit_btn.setEnabled(False)
 
             self.sublayout.addWidget(self.brand_label, 1, 0)
             self.sublayout.addWidget(self.brand_input, 1, 1, 1, 5)
@@ -99,11 +120,13 @@ class MainWindow(QWidget):
             self.sublayout.addWidget(self.date_input, 4, 1, 1, 5)
             self.sublayout.addWidget(self.submit_btn, 5, 1, 1, 5)
 
+            # self.brand_input.textChanged[str].connect(lambda: self.submit_btn.setEnabled(self.brand_input.text() != ""))
+
 
             self.submit_btn.clicked.connect(add_car_submit)
 
         def show_add_car_dialog():
-            if not MainWindow.add_car_toggled:
+            if not MainWindow.add_car_toggled and not MainWindow.edit_car_toggled and not MainWindow.delete_car_toggled:
                 self.brand_label.setHidden(False)
                 self.brand_input.setHidden(False)
                 self.model_label.setHidden(False)
@@ -129,48 +152,176 @@ class MainWindow(QWidget):
                 MainWindow.add_car_toggled = not MainWindow.add_car_toggled
 
         def delete_car_dialog(self):
-            self.delete_car_label = QLabel("Please enter the ID of the car you'd like to delete")
-            self.delete_car_input = QLineEdit()
-            self.onlyInt = QIntValidator(1, len(MainWindow.cars))
-            self.delete_car_input.setValidator(self.onlyInt)
-            self.delete_car_input.textChanged[str].connect(lambda: self.delete_btn.setEnabled(self.delete_car_input.text() != ""))
-            self.delete_btn = QPushButton("Delete", enabled=False)
-            self.delete_car_label.setHidden(True)
-            self.delete_car_input.setHidden(True)
-            self.delete_btn.setHidden(True)
+            self.delete_car_label = QLabel("Enter the ID of the car you'd like to delete")
+            self.val = QIntValidator(1, len(MainWindow.cars))
+            self.del_input = QLineEdit()
 
+            self.spinbox = QSpinBox()
+            self.spinbox.setMinimum(1)
+            self.spinbox.setMaximum(len(MainWindow.cars))
+            self.spinbox.setSingleStep(1)
+            self.spinbox.setValue(1)
+
+            # self.del_input.setValidator(self.val)
+            self.del_btn = QPushButton("Delete", enabled=True)
+            self.delete_car_label.setHidden(True)
+            # self.del_input.setHidden(True)
+            self.spinbox.setHidden(True)
+            self.del_btn.setHidden(True)
             self.sublayout.addWidget(self.delete_car_label, 6, 0, 1, 3)
-            self.sublayout.addWidget(self.delete_car_input, 6, 4, 1, 1)
-            self.sublayout.addWidget(self.delete_btn, 6, 5)
+            self.sublayout.addWidget(self.spinbox, 6, 4, 1, 1)
+            self.sublayout.addWidget(self.del_btn, 6, 5)
 
         def show_delete_car_dialog():
 
-            def delete_selected():
+            def del_clicked():
+                del_id = self.spinbox.value()
+                del_id = int(del_id) - 1
                 filename = "list.txt"
                 read_from_file(filename)
-                del_id = self.delete_car_input.text()
-                del_id = int(del_id) - 1
                 MainWindow.cars.remove(MainWindow.cars[del_id])
                 write_to_file(filename)
+                self.spinbox.setValue(1)
+                self.spinbox.setMaximum(len(MainWindow.cars))
 
-            if not MainWindow.delete_car_toggled:
+            if not MainWindow.delete_car_toggled and not MainWindow.add_car_toggled and not MainWindow.edit_car_toggled:
                 self.delete_car_label.setHidden(False)
-                self.delete_car_input.setHidden(False)
-                self.delete_btn.setHidden(False)
-                if MainWindow.add_car_toggled:
-                    self.setFixedHeight(570)
-                else:
-                    self.setFixedHeight(350)
-            if MainWindow.delete_car_toggled:
+                self.spinbox.setHidden(False)
+                self.del_btn.setHidden(False)
+                self.setFixedHeight(350)
+            elif MainWindow.delete_car_toggled and not MainWindow.add_car_toggled and not MainWindow.edit_car_toggled:
                 self.delete_car_label.setHidden(True)
-                self.delete_car_input.setHidden(True)
-                self.delete_btn.setHidden(True)
-                if not MainWindow.add_car_toggled:
-                    self.setFixedHeight(300)
+                self.spinbox.setHidden(True)
+                self.del_btn.setHidden(True)
+                self.setFixedHeight(290)
 
             MainWindow.delete_car_toggled = not MainWindow.delete_car_toggled
             # Del toggled
-            self.delete_btn.clicked.connect(delete_selected)
+            self.del_btn.clicked.connect(del_clicked)
+
+        def edit_car_dialog(self):
+
+            def edit_car_submit():
+                filename = "list.txt"
+                cars = read_from_file(filename)
+
+                selected_vehicle = MainWindow.cars[self.sel_edit_id]
+                selected_vehicle.brand = self.edit_brand_input.text()
+                selected_vehicle.model = self.edit_model_input.text()
+                selected_vehicle.km_done = self.edit_mileage_input.text()
+                selected_vehicle.service_date = self.edit_date_input.text()
+
+                if len(cars) > 0:
+                    with open(filename, "w+", encoding="utf-8") as file_handle:
+                        for car in cars:
+                            line = car.generate_file_line()
+                            file_handle.write(line)
+
+            def update_edit_fields():
+                self.sel_edit_id = self.edit_id.value() - 1
+                self.edit_brand_input.setText(str(MainWindow.cars[self.sel_edit_id].brand))
+                self.edit_model_input.setText(str(MainWindow.cars[self.sel_edit_id].model))
+                self.edit_mileage_input.setText(str(MainWindow.cars[self.sel_edit_id].km_done))
+                self.edit_date_input.setText(str(MainWindow.cars[self.sel_edit_id].service_date))
+
+            def check_fields():
+                brand_f = self.edit_brand_input.text()
+                model_f = self.edit_model_input.text()
+                mileage_f = self.edit_mileage_input.text()
+                date_f = self.edit_date_input.text()
+
+                if brand_f == "" or model_f == "" or mileage_f == "" or date_f == "":
+                    self.edit_btn.setEnabled(False)
+                else:
+                    try:
+                        datetime.strptime(date_f, "%d.%m.%Y")
+                        self.edit_btn.setEnabled(True)
+                    except ValueError:
+                        self.edit_date_label.setToolTip("A valid date is dd.mm.yyyy")
+                        self.edit_btn.setEnabled(False)
+
+            self.edit_id_label = QLabel("Enter the ID of car you want to edit")
+            self.edit_id = QSpinBox()
+            self.edit_id.setMinimum(1)
+            self.edit_id.setMaximum(len(MainWindow.cars))
+            self.sel_edit_id = self.edit_id.value() - 1
+            self.edit_id_label.setHidden(True)
+            self.edit_id.setHidden(True)
+            self.edit_id.valueChanged[str].connect(update_edit_fields)
+
+            self.edit_brand_label = QLabel("Edit brand name to: ")
+            self.edit_brand_input = QLineEdit()
+            self.edit_brand_label.setHidden(True)
+            self.edit_brand_input.setHidden(True)
+            self.edit_brand_input.textChanged[str].connect(check_fields)
+
+            self.edit_model_label = QLabel("Edit model name to: ")
+            self.edit_model_input = QLineEdit()
+            self.edit_model_label.setHidden(True)
+            self.edit_model_input.setHidden(True)
+            self.edit_model_input.textChanged[str].connect(check_fields)
+
+            self.edit_mileage_label = QLabel("Edit current mileage to: ")
+            self.edit_mileage_input = QLineEdit()
+            self.edit_mileage_label.setHidden(True)
+            self.edit_mileage_input.setHidden(True)
+            self.edit_mileage_input.textChanged[str].connect(check_fields)
+
+            self.edit_date_label = QLabel("Edit service date to: ")
+            self.edit_date_input = QLineEdit()
+            self.edit_date_label.setHidden(True)
+            self.edit_date_input.setHidden(True)
+            self.edit_date_input.textChanged[str].connect(check_fields)
+            # self.edit_date_input.setToolTip("Format: dd.mm.yyyy")
+
+            self.edit_btn = QPushButton("Edit")
+            self.edit_btn.setHidden(True)
+            self.edit_btn.setEnabled(False)
+
+            self.sublayout.addWidget(self.edit_id_label, 1, 0)
+            self.sublayout.addWidget(self.edit_id, 1, 1)
+            self.sublayout.addWidget(self.edit_brand_label, 2, 0)
+            self.sublayout.addWidget(self.edit_brand_input, 2, 1, 1, 5)
+            self.sublayout.addWidget(self.edit_model_label, 3, 0)
+            self.sublayout.addWidget(self.edit_model_input, 3, 1, 1, 5)
+            self.sublayout.addWidget(self.edit_mileage_label, 4, 0)
+            self.sublayout.addWidget(self.edit_mileage_input, 4, 1, 1, 5)
+            self.sublayout.addWidget(self.edit_date_label, 5, 0)
+            self.sublayout.addWidget(self.edit_date_input, 5, 1, 1, 5)
+            self.sublayout.addWidget(self.edit_btn, 6, 1, 1, 5)
+
+            self.edit_btn.clicked.connect(edit_car_submit)
+
+        def show_edit_car_dialog():
+
+            if not MainWindow.edit_car_toggled and not MainWindow.add_car_toggled and not MainWindow.delete_car_toggled:
+                self.edit_id_label.setHidden(False)
+                self.edit_id.setHidden(False)
+                self.edit_brand_label.setHidden(False)
+                self.edit_brand_input.setHidden(False)
+                self.edit_model_label.setHidden(False)
+                self.edit_model_input.setHidden(False)
+                self.edit_mileage_label.setHidden(False)
+                self.edit_mileage_input.setHidden(False)
+                self.edit_date_label.setHidden(False)
+                self.edit_date_input.setHidden(False)
+                self.edit_btn.setHidden(False)
+                self.setFixedHeight(570)
+                MainWindow.edit_car_toggled = not MainWindow.edit_car_toggled
+            elif MainWindow.edit_car_toggled:
+                self.edit_id_label.setHidden(True)
+                self.edit_id.setHidden(True)
+                self.edit_brand_label.setHidden(True)
+                self.edit_brand_input.setHidden(True)
+                self.edit_model_label.setHidden(True)
+                self.edit_model_input.setHidden(True)
+                self.edit_mileage_label.setHidden(True)
+                self.edit_mileage_input.setHidden(True)
+                self.edit_date_label.setHidden(True)
+                self.edit_date_input.setHidden(True)
+                self.edit_btn.setHidden(True)
+                self.setFixedHeight(290)
+                MainWindow.edit_car_toggled = not MainWindow.edit_car_toggled
 
         read_from_file(MainWindow.filename)
 
@@ -191,15 +342,18 @@ class MainWindow(QWidget):
         self.main_CL.addLayout(self.main_grid) # add grid layout to main_CL
         self.main_grid.setSpacing(20)
 
-        #Is add_car toggled?
-        # self.add_car_toggled = False
-
         #Buttons
         self.list_all_cars_btn = QPushButton("List cars")
+        self.list_all_cars_btn.setStyleSheet('background: rgb(142, 126, 111)')
+        # self.list_all_cars_btn.setStyleSheet(')
         self.add_car_btn = QPushButton("Add car")
+        self.add_car_btn.setStyleSheet('background: rgb(142, 126, 111)')
         self.edit_car_btn = QPushButton("Edit car")
+        self.edit_car_btn.setStyleSheet('background: rgb(142, 126, 111)')
         self.delete_car_btn = QPushButton("Delete a car")
+        self.delete_car_btn.setStyleSheet('background: rgb(142, 126, 111)')
         self.quit_btn = QPushButton("Quit")
+        self.quit_btn.setStyleSheet('background: rgb(142, 126, 111)')
         self.quit_btn.setStatusTip('Quit the program')
 
         #List of labels
@@ -225,6 +379,7 @@ class MainWindow(QWidget):
 
         # Insert car dialog below main window
         add_car_dialog(self)
+        edit_car_dialog(self)
         delete_car_dialog(self)
 
 
@@ -238,6 +393,9 @@ class MainWindow(QWidget):
 
         #Show add car dialog
         self.add_car_btn.clicked.connect(show_add_car_dialog)
+
+        #Show edit car dialog
+        self.edit_car_btn.clicked.connect(show_edit_car_dialog)
 
         #Show delete car dialog
         self.delete_car_btn.clicked.connect(show_delete_car_dialog)
@@ -302,29 +460,12 @@ class ViewCars(QWidget):
             back_btn.setHidden(True)
         self.setLayout(v_layout)
 
+        if not MainWindow.delete_car_toggled:
+            MainWindow.edit_car_toggled = False
+            MainWindow.add_car_toggled = False
+
     def switch(self):
         self.switch_window.emit()
-
-
-
-# class AddCar(QWidget):
-#
-#     def __init__(self):
-#         super(AddCar, self).__init__()
-#         self.setFixedHeight(100)
-#
-#         # # Container Widget
-#         # widget = QWidget()
-#         # # Layout of Container Widget
-#         # layout = QVBoxLayout(self)
-#         #
-#         # # for _ in range(20):
-#         # #     btn = QPushButton('test')
-#         # #     layout.addWidget(btn)
-#         #
-#         # widget.setLayout(layout)
-#         #
-#         # self.setLayout(layout)
 
 
 class Controller:
@@ -343,7 +484,9 @@ class Controller:
         self.window_car_list = ViewCars()
         self.window_car_list.switch_window.connect(self.show_main)
         self.window_car_list.show()
-
+    def reopen_car_list(self):
+        self.window_car_list = ViewCars()
+        self.window_car_list.close()
 
 
 def main():
