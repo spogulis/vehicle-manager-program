@@ -21,7 +21,7 @@ def read_from_file(filename):
 
 def write_to_file(filename):
     cars = MainWindow.cars
-    if len(cars) > 0:
+    if len(cars) >= 0:
         with open(filename, "w+", encoding="utf-8") as file_handle:
             for car in cars:
                 line = car.generate_file_line()
@@ -153,19 +153,16 @@ class MainWindow(QWidget):
 
         def delete_car_dialog(self):
             self.delete_car_label = QLabel("Enter the ID of the car you'd like to delete")
-            self.val = QIntValidator(1, len(MainWindow.cars))
-            self.del_input = QLineEdit()
-
             self.spinbox = QSpinBox()
             self.spinbox.setMinimum(1)
             self.spinbox.setMaximum(len(MainWindow.cars))
             self.spinbox.setSingleStep(1)
             self.spinbox.setValue(1)
 
-            # self.del_input.setValidator(self.val)
             self.del_btn = QPushButton("Delete", enabled=True)
+            if self.spinbox.value() == 0:
+                self.del_btn.setEnabled(False)
             self.delete_car_label.setHidden(True)
-            # self.del_input.setHidden(True)
             self.spinbox.setHidden(True)
             self.del_btn.setHidden(True)
             self.sublayout.addWidget(self.delete_car_label, 6, 0, 1, 3)
@@ -178,11 +175,12 @@ class MainWindow(QWidget):
                 del_id = self.spinbox.value()
                 del_id = int(del_id) - 1
                 filename = "list.txt"
-                read_from_file(filename)
+                # read_from_file(filename)
                 MainWindow.cars.remove(MainWindow.cars[del_id])
                 write_to_file(filename)
-                self.spinbox.setValue(1)
+                # self.spinbox.setValue(1)
                 self.spinbox.setMaximum(len(MainWindow.cars))
+                self.del_btn.setEnabled(False)
 
             if not MainWindow.delete_car_toggled and not MainWindow.add_car_toggled and not MainWindow.edit_car_toggled:
                 self.delete_car_label.setHidden(False)
@@ -218,11 +216,12 @@ class MainWindow(QWidget):
                             file_handle.write(line)
 
             def update_edit_fields():
-                self.sel_edit_id = self.edit_id.value() - 1
-                self.edit_brand_input.setText(str(MainWindow.cars[self.sel_edit_id].brand))
-                self.edit_model_input.setText(str(MainWindow.cars[self.sel_edit_id].model))
-                self.edit_mileage_input.setText(str(MainWindow.cars[self.sel_edit_id].km_done))
-                self.edit_date_input.setText(str(MainWindow.cars[self.sel_edit_id].service_date))
+                if self.sel_edit_id >= 1:
+                    self.sel_edit_id = self.edit_id.value() - 1
+                    self.edit_brand_input.setText(str(MainWindow.cars[self.sel_edit_id].brand))
+                    self.edit_model_input.setText(str(MainWindow.cars[self.sel_edit_id].model))
+                    self.edit_mileage_input.setText(str(MainWindow.cars[self.sel_edit_id].km_done))
+                    self.edit_date_input.setText(str(MainWindow.cars[self.sel_edit_id].service_date))
 
             def check_fields():
                 brand_f = self.edit_brand_input.text()
@@ -483,9 +482,6 @@ class Controller:
         self.window_car_list = ViewCars()
         self.window_car_list.switch_window.connect(self.show_main)
         self.window_car_list.show()
-    def reopen_car_list(self):
-        self.window_car_list = ViewCars()
-        self.window_car_list.close()
 
 
 def main():
