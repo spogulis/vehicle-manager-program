@@ -272,7 +272,6 @@ class MainWindow(QWidget):
             self.edit_date_label.setHidden(True)
             self.edit_date_input.setHidden(True)
             self.edit_date_input.textChanged[str].connect(check_fields)
-            # self.edit_date_input.setToolTip("Format: dd.mm.yyyy")
 
             self.edit_btn = QPushButton("Edit")
             self.edit_btn.setHidden(True)
@@ -289,7 +288,7 @@ class MainWindow(QWidget):
             self.sublayout.addWidget(self.edit_date_label, 5, 0)
             self.sublayout.addWidget(self.edit_date_input, 5, 1, 1, 5)
             self.sublayout.addWidget(self.edit_btn, 6, 1, 1, 5)
-
+            update_edit_fields()
             self.edit_btn.clicked.connect(edit_car_submit)
 
         def show_edit_car_dialog():
